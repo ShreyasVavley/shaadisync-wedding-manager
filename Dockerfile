@@ -22,12 +22,11 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/src/types ./src/types
-COPY tsconfig.json ./
+COPY tsconfig*.json ./
 
-# Ensure database directory exists with persistent volume
+# Ensure database directory exists
 RUN mkdir -p /app/server/data
-VOLUME ["/app/server/data"]
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "server/server.ts"]
+CMD ["npm", "start"]
