@@ -29,6 +29,7 @@ export interface Guest {
   lastUpdated?: string;
   magicToken: string;
   subEvents?: Record<string, boolean>; // { haldi: true, sangeet: true, wedding: true, reception: true }
+  allowedSubEvents?: string[]; // Ceremonies this family is invited to: e.g. ['reception'] or ['sangeet', 'reception'] or ['haldi', 'sangeet', 'wedding', 'reception']
   tableNumber?: string | null;
 }
 

@@ -22,6 +22,8 @@ import {
   getAllWebhookLogs,
   getSystemConfig,
   setSystemConfig,
+  getAdminPasscode,
+  setAdminPasscode,
 } from './db';
 import { sendWhatsAppMessage, handleInboundWhatsAppWebhook } from './whatsapp';
 import { executeAutomationRule, startAutomationScheduler } from './automation';
@@ -195,11 +197,46 @@ app.get('/api/guest/:idOrToken', (req, res) => {
   res.json({ guest, event: getEventDetails() });
 });
 
+// Host Admin Security Login & Verification
+app.post('/api/admin/login', (req, res) => {
+  const { passcode } = req.body;
+  const current = getAdminPasscode();
+  if (passcode && passcode.toString().trim() === current.toString().trim()) {
+    const token = `host_${Buffer.from(Date.now().toString()).toString('base64')}`;
+    res.json({ success: true, token, message: 'Host portal unlocked' });
+  } else {
+    res.status(401).json({ success: false, error: 'Incorrect Host Security PIN' });
+  }
+});
+
+app.post('/api/admin/change-pin', (req, res) => {
+  const { currentPasscode, newPasscode } = req.body;
+  const existing = getAdminPasscode();
+  if (!currentPasscode || currentPasscode.toString().trim() !== existing.toString().trim()) {
+    return res.status(401).json({ error: 'Current passcode is incorrect' });
+  }
+  if (!newPasscode || newPasscode.toString().trim().length < 4) {
+    return res.status(400).json({ error: 'New PIN must be at least 4 digits' });
+  }
+  setAdminPasscode(newPasscode.toString().trim());
+  res.json({ success: true, message: 'Host PIN successfully updated' });
+});
+
 // Submit / Update RSVP (Persisted to SQLite + Live WS Broadcast)
 app.post('/api/rsvp', (req, res) => {
-  const { guestId, status, attendingCount, diet, arrivalTime, songRequest, notes, subEvents, tableNumber } = req.body;
+  const { guestId, token, status, attendingCount, diet, arrivalTime, songRequest, notes, subEvents, tableNumber } = req.body;
 
   try {
+    const existing = getGuestByIdOrToken(guestId);
+    if (!existing) {
+      return res.status(404).json({ error: 'Guest not found' });
+    }
+
+    // Security: verify token to prevent one family from voting on another family's behalf
+    if (token && token !== existing.magicToken && token !== existing.id) {
+      return res.status(403).json({ error: 'Security violation: Magic token does not match guest record.' });
+    }
+
     const updatedGuest = updateGuestRSVP(guestId, {
       status,
       attendingCount: Number(attendingCount) || 1,

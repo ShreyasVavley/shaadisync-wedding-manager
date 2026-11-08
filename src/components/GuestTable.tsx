@@ -345,6 +345,19 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           </span>
                         )}
                       </div>
+                      {/* Scoped Invited Ceremonies Badge */}
+                      <div className="flex flex-wrap items-center gap-1 mt-1">
+                        {(guest.allowedSubEvents || ['wedding', 'reception']).map((ev) => (
+                          <span
+                            key={ev}
+                            className="text-[9px] font-semibold px-1.5 py-0.2 rounded uppercase bg-neutral-100 text-neutral-600 border border-neutral-200"
+                            title={`Invited to ${ev.toUpperCase()}`}
+                          >
+                            {ev}
+                          </span>
+                        ))}
+                      </div>
+
                       {guest.notes && (
                         <div className="text-[11px] text-neutral-500 italic mt-0.5">
                           "{guest.notes}"

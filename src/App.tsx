@@ -3,6 +3,7 @@ import type { EventDetails, EventStats, Guest, ActivityEvent, HotelRoom } from '
 import { HostDashboard } from './components/HostDashboard';
 import { GuestRSVP } from './components/GuestRSVP';
 import { Smartphone, X } from 'lucide-react';
+import { AdminPasscodeGate } from './components/AdminPasscodeGate';
 
 // Web Audio API chime for live incoming RSVPs
 function playChime() {
@@ -51,6 +52,10 @@ export function App() {
   const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [previewGuest, setPreviewGuest] = useState<Guest | null>(null);
   const [liveToast, setLiveToast] = useState<{ name: string; text: string } | null>(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('shaadi_admin_auth') === '1';
+  });
   const [pushPermission, setPushPermission] = useState<NotificationPermission>(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
   );
@@ -320,6 +325,11 @@ export function App() {
     );
   }
 
+  // Security Gate: Protect Wedding Host Admin Dashboard with 4-digit Passcode
+  if (!isAdminAuthenticated) {
+    return <AdminPasscodeGate onAuthenticated={() => setIsAdminAuthenticated(true)} />;
+  }
+
   return (
     <div className="relative">
       {/* Realtime Toast Alert */}
@@ -358,6 +368,10 @@ export function App() {
             }}
             onToggleMobilePreview={() => setShowMobilePreview(!showMobilePreview)}
             showMobilePreview={showMobilePreview}
+            onLock={() => {
+              sessionStorage.removeItem('shaadi_admin_auth');
+              setIsAdminAuthenticated(false);
+            }}
             onUpdateCostPerPlate={handleUpdateCostPerPlate}
           />
         </div>

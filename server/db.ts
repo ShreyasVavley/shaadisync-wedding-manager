@@ -107,6 +107,10 @@ try {
   db.exec("ALTER TABLE guests ADD COLUMN table_number TEXT;");
 } catch (e) {}
 
+try {
+  db.exec("ALTER TABLE guests ADD COLUMN allowed_sub_events TEXT;");
+} catch (e) {}
+
 export const DEFAULT_SUB_EVENTS = [
   {
     id: 'haldi',
@@ -344,6 +348,24 @@ export function updateEventDetails(data: Partial<EventDetails>): EventDetails {
   return { ...updated, subEvents: DEFAULT_SUB_EVENTS };
 }
 
+export function resolveAllowedSubEvents(allowedStr: string | null | undefined, category: string): string[] {
+  if (allowedStr) {
+    try {
+      const parsed = JSON.parse(allowedStr);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {}
+  }
+  // Authentic Indian wedding guest event segmentation:
+  if (category === 'family') {
+    return ['haldi', 'sangeet', 'wedding', 'reception'];
+  } else if (category === 'friends') {
+    return ['sangeet', 'reception'];
+  } else if (category === 'colleagues') {
+    return ['reception'];
+  }
+  return ['wedding', 'reception'];
+}
+
 export function getAllGuests(): Guest[] {
   const rows = db.prepare('SELECT * FROM guests ORDER BY ROWID DESC').all() as any[];
   return rows.map((r) => {
@@ -353,6 +375,7 @@ export function getAllGuests(): Guest[] {
         subEvents = JSON.parse(r.sub_events);
       } catch (e) {}
     }
+    const allowedSubEvents = resolveAllowedSubEvents(r.allowed_sub_events, r.category);
     return {
       id: r.id,
       name: r.name,
@@ -368,6 +391,7 @@ export function getAllGuests(): Guest[] {
       lastUpdated: r.last_updated || undefined,
       magicToken: r.magic_token,
       subEvents,
+      allowedSubEvents,
       tableNumber: r.table_number || undefined,
     };
   });
@@ -382,6 +406,7 @@ export function getGuestByIdOrToken(param: string): Guest | null {
       subEvents = JSON.parse(row.sub_events);
     } catch (e) {}
   }
+  const allowedSubEvents = resolveAllowedSubEvents(row.allowed_sub_events, row.category);
   return {
     id: row.id,
     name: row.name,
@@ -397,6 +422,7 @@ export function getGuestByIdOrToken(param: string): Guest | null {
     lastUpdated: row.last_updated || undefined,
     magicToken: row.magic_token,
     subEvents,
+    allowedSubEvents,
     tableNumber: row.table_number || undefined,
   };
 }
@@ -417,7 +443,26 @@ export function updateGuestRSVP(
   const prev = getGuestByIdOrToken(guestId);
   if (!prev) throw new Error('Guest not found');
 
-  const subEventsStr = rsvpData.subEvents ? JSON.stringify(rsvpData.subEvents) : (prev.subEvents ? JSON.stringify(prev.subEvents) : null);
+  // Security: enforce allowedSubEvents boundary so one family event cannot vote in another
+  const allowed = prev.allowedSubEvents || resolveAllowedSubEvents(null, prev.category);
+  let safeSubEvents: Record<string, boolean> = {};
+  if (rsvpData.subEvents) {
+    for (const evId of allowed) {
+      if (rsvpData.subEvents[evId] !== undefined) {
+        safeSubEvents[evId] = !!rsvpData.subEvents[evId];
+      } else {
+        safeSubEvents[evId] = true;
+      }
+    }
+  } else if (prev.subEvents) {
+    safeSubEvents = prev.subEvents;
+  } else {
+    for (const evId of allowed) {
+      safeSubEvents[evId] = true;
+    }
+  }
+
+  const subEventsStr = JSON.stringify(safeSubEvents);
   const tableNum = rsvpData.tableNumber !== undefined ? rsvpData.tableNumber : (prev.tableNumber || null);
 
   db.prepare(`
@@ -588,4 +633,13 @@ export function setSystemConfig(key: string, value: string) {
     VALUES (?, ?)
     ON CONFLICT(key) DO UPDATE SET value = excluded.value
   `).run(key, value);
+}
+
+// Host Admin Passcode Security helpers
+export function getAdminPasscode(): string {
+  return process.env.ADMIN_PASSCODE || getSystemConfig('ADMIN_PASSCODE', '2026');
+}
+
+export function setAdminPasscode(newPin: string): void {
+  setSystemConfig('ADMIN_PASSCODE', newPin);
 }

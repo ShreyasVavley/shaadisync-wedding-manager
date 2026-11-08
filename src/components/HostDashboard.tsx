@@ -39,7 +39,9 @@ import {
   VolumeX,
   Bell,
   Send,
-  Bot,
+
+  Lock,
+  MessageSquare,
 } from 'lucide-react';
 
 interface HostDashboardProps {
@@ -61,6 +63,7 @@ interface HostDashboardProps {
   onToggleMobilePreview: () => void;
   showMobilePreview: boolean;
   onUpdateCostPerPlate: (cost: number) => void;
+  onLock?: () => void;
 }
 
 export const HostDashboard: React.FC<HostDashboardProps> = ({
@@ -82,6 +85,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   onToggleMobilePreview,
   showMobilePreview,
   onUpdateCostPerPlate,
+  onLock,
 }) => {
   const [activeTab, setActiveTab] = useState<'roster' | 'catering' | 'arrival' | 'rooms' | 'stream'>('roster');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -182,9 +186,21 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
               className="px-2.5 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 active:scale-95 transition shadow-xs text-xs font-bold flex items-center gap-1.5"
               title="Automated Scheduled Messaging & WhatsApp Cloud API Engine"
             >
-              <Bot className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-              <span>Automations</span>
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span>WhatsApp Automation</span>
             </button>
+
+            {/* Lock Host Admin Portal */}
+            {onLock && (
+              <button
+                onClick={onLock}
+                className="px-2.5 py-1.5 rounded-xl border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 active:scale-95 transition shadow-xs text-xs font-bold flex items-center gap-1.5"
+                title="Lock Host Portal (Requires 4-digit PIN to re-enter)"
+              >
+                <Lock className="w-3.5 h-3.5 text-neutral-600" />
+                <span className="hidden sm:inline">Lock Portal</span>
+              </button>
+            )}
 
             {/* Sound Toggle */}
             <button

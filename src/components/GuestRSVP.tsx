@@ -13,6 +13,7 @@ interface GuestRSVPProps {
   event: EventDetails;
   onSubmitRSVP: (rsvpData: {
     guestId: string;
+    token?: string;
     status: 'confirmed' | 'declined';
     attendingCount: number;
     diet: DietPreference | null;
@@ -47,10 +48,11 @@ export const GuestRSVP: React.FC<GuestRSVPProps> = ({
   const [songRequest, setSongRequest] = useState<string>(guest.songRequest || '');
   const [notes, setNotes] = useState<string>(guest.notes || '');
 
-  // Sub-events attendance defaults
+  // Sub-events attendance defaults scoped strictly to this family's allowed invitations
+  const allowedList = guest.allowedSubEvents || ['wedding', 'reception'];
   const defaultSubEvents = event.subEvents
-    ? event.subEvents.reduce((acc, ev) => ({ ...acc, [ev.id]: true }), {} as Record<string, boolean>)
-    : { haldi: true, sangeet: true, wedding: true, reception: true };
+    ? event.subEvents.reduce((acc, ev) => ({ ...acc, [ev.id]: allowedList.includes(ev.id) }), {} as Record<string, boolean>)
+    : { haldi: false, sangeet: true, wedding: true, reception: true };
   const [subEvents, setSubEvents] = useState<Record<string, boolean>>(guest.subEvents || defaultSubEvents);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -91,6 +93,7 @@ export const GuestRSVP: React.FC<GuestRSVPProps> = ({
     try {
       await onSubmitRSVP({
         guestId: guest.id,
+        token: guest.magicToken,
         status,
         attendingCount: status === 'confirmed' ? attendingCount : 0,
         diet: status === 'confirmed' ? diet : null,
@@ -267,10 +270,13 @@ export const GuestRSVP: React.FC<GuestRSVPProps> = ({
                     </div>
                   </div>
 
-                  {/* Multi-Event Ceremony Checklist */}
-                  {event.subEvents && event.subEvents.length > 0 && (
+                  {/* Multi-Event Ceremony Checklist - Strictly scoped to this family's allowed invitations */}
+                  {event.subEvents && event.subEvents.filter((c) => allowedList.includes(c.id)).length > 0 && (
                     <div className="space-y-3 pt-2">
                       <div className="text-center">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-100 text-[10px] font-bold text-neutral-600 mb-1">
+                          <span>Invitations Scoped to Your Family</span>
+                        </div>
                         <h3 className="text-sm font-black tracking-tight text-neutral-950 uppercase">
                           {t.ceremoniesTitle}
                         </h3>
@@ -280,7 +286,9 @@ export const GuestRSVP: React.FC<GuestRSVPProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        {event.subEvents.map((c) => {
+                        {event.subEvents
+                          .filter((c) => allowedList.includes(c.id))
+                          .map((c) => {
                           const isAttending = subEvents[c.id] !== false;
                           return (
                             <button

@@ -360,17 +360,17 @@ export const AutomationControlModal: React.FC<AutomationControlModalProps> = ({
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   <button
                     type="button"
-                    onClick={() => setSimMessage('Haan 4 pax veg coming by 7:30pm')}
+                    onClick={() => setSimMessage('Haan 4 pax pure veg arriving 8pm for Sangeet & Reception')}
                     className="px-2 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-[10px] font-semibold text-neutral-700"
                   >
-                    "Haan 4 pax veg"
+                    "4 veg (Sangeet & Reception)"
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSimMessage('Confirmed 2 Non-veg arriving 8:30pm')}
+                    onClick={() => setSimMessage('Confirmed 2 Non-veg arriving 8:30pm for Reception only')}
                     className="px-2 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-[10px] font-semibold text-neutral-700"
                   >
-                    "Confirmed 2 Non-veg"
+                    "2 Non-veg (Reception only)"
                   </button>
                   <button
                     type="button"
