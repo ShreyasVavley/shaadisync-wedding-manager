@@ -23,34 +23,37 @@ export const CateringManifestModal: React.FC<CateringManifestModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in print:p-0 print:bg-white print:fixed print:inset-0">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-neutral-200 space-y-6 max-h-[90vh] overflow-y-auto print:shadow-none print:border-none print:max-h-full print:rounded-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in print:p-0 print:bg-white print:fixed print:inset-0">
+      <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-amber-500/30 space-y-6 max-h-[90vh] overflow-y-auto print:shadow-none print:border-none print:max-h-full print:rounded-none">
         {/* Header Actions */}
         <div className="flex items-center justify-between pb-4 border-b border-neutral-200 print:hidden">
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-neutral-900 text-white">
-              <FileText className="w-5 h-5" />
+          <div className="flex items-center gap-2.5">
+            <span className="p-2.5 rounded-2xl bg-neutral-950 text-white shadow-md">
+              <FileText className="w-5 h-5 text-amber-400" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-neutral-900">
-                Official Banquet &amp; Catering Guarantee Manifest
+              <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600">
+                OFFICIAL PRINTABLE MANIFEST
+              </div>
+              <h3 className="text-base font-black text-neutral-900">
+                Banquet &amp; Catering Guarantee Manifest
               </h3>
               <p className="text-xs text-neutral-500">
-                Printable sheet for Taj Palace F&amp;B Manager &amp; Head Chef
+                Formatted for Taj Palace F&amp;B Director &amp; Executive Chef
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-neutral-950 text-white text-xs font-bold flex items-center gap-2 hover:bg-neutral-800 transition shadow"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 text-xs font-black flex items-center gap-2 transition shadow-md active:scale-95"
             >
               <Printer className="w-4 h-4" />
               <span>Print Manifest</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition"
+              className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition"
             >
               <X className="w-5 h-5" />
             </button>
