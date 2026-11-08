@@ -13,6 +13,9 @@ import {
   Send,
   QrCode,
   X,
+  Pencil,
+  Trash2,
+  Download,
 } from 'lucide-react';
 
 interface GuestTableProps {
@@ -21,6 +24,9 @@ interface GuestTableProps {
   onOpenWhatsAppModal: (guest: Guest) => void;
   onOpenBatchNotificationModal: (selectedGuests: Guest[]) => void;
   onViewGatePass?: (guest: Guest) => void;
+  onEditGuest?: (guest: Guest) => void;
+  onDeleteGuest?: (guestId: string, guestName: string) => void;
+  onBulkUpdateStatus?: (guestIds: string[], status: 'confirmed' | 'declined') => Promise<void>;
 }
 
 export const GuestTable: React.FC<GuestTableProps> = ({
@@ -29,6 +35,9 @@ export const GuestTable: React.FC<GuestTableProps> = ({
   onOpenWhatsAppModal,
   onOpenBatchNotificationModal,
   onViewGatePass,
+  onEditGuest,
+  onDeleteGuest,
+  onBulkUpdateStatus,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'pending' | 'declined'>('all');
@@ -81,6 +90,43 @@ export const GuestTable: React.FC<GuestTableProps> = ({
     const confirmed = guests.filter((g) => g.status === 'confirmed');
     setSelectedIds(new Set(confirmed.map((g) => g.id)));
     setStatusFilter('confirmed');
+  };
+
+  const handleExportSelectedCSV = () => {
+    const selectedList = guests.filter((g) => selectedIds.has(g.id));
+    if (selectedList.length === 0) return;
+    const headers = ['Name', 'Phone', 'Category', 'Status', 'Invited Pax', 'Confirmed Pax', 'Diet', 'Arrival Time', 'Ceremonies', 'Notes', 'Magic Token'];
+    const rows = selectedList.map((g) => [
+      `"${g.name}"`,
+      `"${g.phone}"`,
+      `"${g.category}"`,
+      `"${g.status}"`,
+      g.invitedCount,
+      g.attendingCount,
+      `"${g.diet || 'N/A'}"`,
+      `"${g.arrivalTime || 'N/A'}"`,
+      `"${Object.entries(g.subEvents || {}).filter(([_, v]) => v).map(([k]) => k).join(', ')}"`,
+      `"${(g.notes || '').replace(/"/g, '""')}"`,
+      `"${g.magicToken}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `selected_wedding_guests_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkStatusChange = async (status: 'confirmed' | 'declined') => {
+    if (!onBulkUpdateStatus || selectedIds.size === 0) return;
+    try {
+      await onBulkUpdateStatus(Array.from(selectedIds), status);
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert('Failed to update status for selected guests.');
+    }
   };
 
   const handleClearSelection = () => {
@@ -154,7 +200,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
               title="Select all guests who have not responded to send them a reminder"
             >
               <Clock className="w-3.5 h-3.5 text-amber-600" />
-              <span>Select Awaiting ({guests.filter((g) => g.status === 'pending').length})</span>
+              <span>Select Awaiting RSVPs ({guests.filter((g) => g.status === 'pending').length})</span>
             </button>
 
             <button
@@ -404,7 +450,15 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           </span>
                         </span>
                       ) : isDeclined ? (
-                        <span className="text-neutral-400">0 Attending</span>
+                        <span className="text-neutral-500 font-medium">
+                          <span className="text-neutral-900 font-bold">0</span>{' '}
+                          <span className="text-neutral-400 font-normal">
+                            (of {guest.invitedCount} invited)
+                          </span>
+                          <span className="ml-1.5 text-[10px] text-rose-700 font-bold bg-rose-50 border border-rose-200/80 px-1.5 py-0.5 rounded-full inline-block">
+                            Declined
+                          </span>
+                        </span>
                       ) : (
                         <span className="text-neutral-500">
                           {guest.invitedCount} Invited (Pending)
@@ -442,12 +496,73 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                     {/* Action buttons */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Copy Magic Link */}
+                        {/* 1. Edit / View Details */}
+                        {onEditGuest && (
+                          <button
+                            type="button"
+                            onClick={() => onEditGuest(guest)}
+                            title="Edit details (Headcount, Diet, Notes)"
+                            className="p-1.5 rounded-lg border border-neutral-300 bg-white text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition shadow-xs"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {/* 2. Direct WhatsApp / SMS Ping */}
+                        <a
+                          href={`https://wa.me/${guest.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                            `Namaste ${guest.name}! Warm greetings from Aarav & Riya. Could you please confirm your wedding RSVP attendance and food preference here: ${typeof window !== 'undefined' ? window.location.origin : ''}?guest=${guest.magicToken}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Direct WhatsApp / SMS ping to ${guest.name} (${guest.phone})`}
+                          className="p-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition shadow-xs inline-flex items-center"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </a>
+
+                        {/* WhatsApp Custom Template Modal */}
+                        {onOpenWhatsAppModal && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenWhatsAppModal(guest)}
+                            title="Choose WhatsApp template (Invite, 48h Nudge, Day-of Directions)"
+                            className="p-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition shadow-xs"
+                          >
+                            <Send className="w-3.5 h-3.5 text-neutral-500" />
+                          </button>
+                        )}
+
+                        {/* 3. Delete / Remove Record */}
+                        {onDeleteGuest && (
+                          <button
+                            type="button"
+                            onClick={() => onDeleteGuest(guest.id, guest.name)}
+                            title={`Delete / Remove ${guest.name}`}
+                            className="p-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition shadow-xs"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {/* 4. Digital Gate Pass & Valet QR */}
+                        {isConfirmed && onViewGatePass && (
+                          <button
+                            type="button"
+                            onClick={() => onViewGatePass(guest)}
+                            title="View & Share Digital Wedding Gate Pass"
+                            className="p-1.5 rounded-lg border border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 transition shadow-xs"
+                          >
+                            <QrCode className="w-3.5 h-3.5 text-amber-600" />
+                          </button>
+                        )}
+
+                        {/* 5. Copy Magic Link */}
                         <button
                           type="button"
                           onClick={() => copyMagicLink(guest)}
                           title="Copy personalized RSVP Link"
-                          className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
+                          className="p-1.5 rounded-lg border border-neutral-200 bg-white text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition shadow-xs"
                         >
                           {copiedId === guest.id ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -456,34 +571,12 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           )}
                         </button>
 
-                        {/* WhatsApp Invite / Nudge */}
-                        <button
-                          type="button"
-                          onClick={() => onOpenWhatsAppModal(guest)}
-                          title="Send WhatsApp Invite or Reminder"
-                          className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Digital Gate Pass & Valet QR */}
-                        {isConfirmed && onViewGatePass && (
-                          <button
-                            type="button"
-                            onClick={() => onViewGatePass(guest)}
-                            title="View & Share Digital Wedding Gate Pass"
-                            className="p-1.5 rounded-lg border border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 transition"
-                          >
-                            <QrCode className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        {/* Open in Mobile RSVP Preview */}
+                        {/* 6. Open in Mobile RSVP Preview */}
                         <button
                           type="button"
                           onClick={() => onSelectGuestForPreview(guest)}
                           title="Open Guest RSVP Screen"
-                          className="p-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition"
+                          className="p-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition shadow-xs"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </button>
@@ -496,6 +589,67 @@ export const GuestTable: React.FC<GuestTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Sticky Floating Batch Action Dock (Item 4) */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-950 text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-800 flex flex-wrap items-center gap-3 animate-slide-up max-w-[95vw]">
+          <div className="flex items-center gap-2 pr-2 border-r border-neutral-800">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping inline-block" />
+            <span className="text-xs font-bold whitespace-nowrap">
+              {selectedIds.size} Selected ({selectedTotalPax} Pax)
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onOpenBatchNotificationModal(selectedGuestsList)}
+            className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-extrabold flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Bulk Remind ({selectedIds.size})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportSelectedCSV}
+            className="px-3 py-1.5 rounded-xl border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-bold text-neutral-200 flex items-center gap-1.5 transition active:scale-95"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export CSV</span>
+          </button>
+
+          {onBulkUpdateStatus && (
+            <button
+              type="button"
+              onClick={() => handleBulkStatusChange('confirmed')}
+              className="px-2.5 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-bold flex items-center gap-1.5 transition active:scale-95"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Confirm</span>
+            </button>
+          )}
+
+          {onBulkUpdateStatus && (
+            <button
+              type="button"
+              onClick={() => handleBulkStatusChange('declined')}
+              className="px-2.5 py-1.5 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold flex items-center gap-1.5 transition active:scale-95"
+            >
+              <UserX className="w-3.5 h-3.5 text-rose-400" />
+              <span>Decline</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleClearSelection}
+            className="p-1 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition"
+            title="Deselect all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

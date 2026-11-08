@@ -14,6 +14,7 @@ import { AdminAlertsModal } from './AdminAlertsModal';
 import { BatchNotificationModal } from './BatchNotificationModal';
 import { AutomationControlModal } from './AutomationControlModal';
 import { DigitalGatePassModal } from './DigitalGatePassModal';
+import { EditGuestModal } from './EditGuestModal';
 import { exportBanquetMasterCSV } from '../utils/exportBanquetPack';
 import { ShimmerButton } from './ui/shimmer-button';
 import { InteractiveButton } from './ui/interactive-button';
@@ -96,6 +97,29 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   const [selectedWhatsAppGuest, setSelectedWhatsAppGuest] = useState<Guest | null>(null);
   const [selectedBatchGuests, setSelectedBatchGuests] = useState<Guest[] | null>(null);
   const [selectedGatePassGuest, setSelectedGatePassGuest] = useState<Guest | null>(null);
+  const [selectedEditGuest, setSelectedEditGuest] = useState<Guest | null>(null);
+
+  const handleSaveEditedGuest = async (guestId: string, data: Partial<Guest>) => {
+    await fetch(`/api/guest/${guestId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  };
+
+  const handleDeleteGuest = async (guestId: string, guestName: string) => {
+    if (confirm(`Are you sure you want to remove "${guestName}" from the wedding guest list?`)) {
+      await fetch(`/api/guest/${guestId}`, { method: 'DELETE' });
+    }
+  };
+
+  const handleBulkStatus = async (guestIds: string[], status: 'confirmed' | 'declined') => {
+    await fetch('/api/guests/bulk-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guestIds, status }),
+    });
+  };
   const [isSimulating, setIsSimulating] = useState(false);
 
   const handleSimulate = async () => {
@@ -177,7 +201,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
               title="How Admin Gets Notified"
             >
               <Bell className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden sm:inline">Admin Alerts</span>
+              <span className="hidden sm:inline">Alert Channels</span>
             </button>
 
             {/* Background Messaging Automation & Webhook Engine */}
@@ -519,6 +543,9 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
               onOpenWhatsAppModal={(g) => setSelectedWhatsAppGuest(g)}
               onOpenBatchNotificationModal={(selected) => setSelectedBatchGuests(selected)}
               onViewGatePass={(g) => setSelectedGatePassGuest(g)}
+              onEditGuest={(g) => setSelectedEditGuest(g)}
+              onDeleteGuest={handleDeleteGuest}
+              onBulkUpdateStatus={handleBulkStatus}
             />
           </div>
         )}
@@ -616,6 +643,16 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
           onClose={() => setSelectedGatePassGuest(null)}
           guest={selectedGatePassGuest}
           event={event}
+        />
+      )}
+
+      {selectedEditGuest && (
+        <EditGuestModal
+          isOpen={!!selectedEditGuest}
+          onClose={() => setSelectedEditGuest(null)}
+          guest={selectedEditGuest}
+          onSave={handleSaveEditedGuest}
+          onDelete={(id) => handleDeleteGuest(id, selectedEditGuest.name)}
         />
       )}
     </BackgroundPattern>

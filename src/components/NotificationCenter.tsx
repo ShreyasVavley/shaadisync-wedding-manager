@@ -37,7 +37,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
       <button
         onClick={handleToggle}
         className="relative p-2 rounded-xl border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 active:scale-95 transition shadow-xs"
-        title="Admin Notifications"
+        title={`${unreadCount} Recent Activity Alerts (Special Diets & Notes)`}
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (

@@ -14,6 +14,9 @@ import {
   createGuest,
   getAllActivities,
   recordActivity,
+  deleteGuest,
+  updateGuestDetails,
+  bulkUpdateGuestStatus,
   getAllRooms,
   assignRoom,
   resetDatabase,
@@ -84,10 +87,12 @@ function computeStats(): EventStats {
         arrivalDistribution[g.arrivalTime] = (arrivalDistribution[g.arrivalTime] || 0) + g.attendingCount;
       }
 
-      // Track sub-events attendance
-      const sub = g.subEvents || { haldi: true, sangeet: true, wedding: true, reception: true };
+      // Track distinct sub-events attendance per ceremony
       for (const key of ['haldi', 'sangeet', 'wedding', 'reception']) {
-        if (sub[key] !== false) {
+        const attends = g.subEvents
+          ? g.subEvents[key] === true
+          : (g.allowedSubEvents ? g.allowedSubEvents.includes(key) : (g.category === 'family'));
+        if (attends) {
           subEventHeadcounts[key].totalPax += g.attendingCount;
           subEventHeadcounts[key].parties += 1;
         }
@@ -302,6 +307,78 @@ app.post('/api/guest', (req, res) => {
   broadcast('GUEST_ADDED', { guest: newGuest, activity: newActivity });
 
   res.json({ success: true, guest: newGuest, stats: computeStats() });
+});
+
+// Update/Edit single guest details
+app.put('/api/guest/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    const updated = updateGuestDetails(id, req.body);
+    const newActivity: ActivityEvent = {
+      id: `act-${Date.now()}`,
+      guestName: updated.name,
+      type: 'rsvp_confirmed',
+      description: `Details updated (${updated.attendingCount} pax, ${updated.diet || 'Diet TBD'})`,
+      timestamp: 'Just now',
+      count: updated.attendingCount,
+      diet: updated.diet,
+    };
+    recordActivity(newActivity);
+    broadcast('RSVP_UPDATED', { guest: updated, activity: newActivity });
+    res.json({ success: true, guest: updated, stats: computeStats() });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update guest' });
+  }
+});
+
+// Delete single guest record
+app.delete('/api/guest/:id', (req, res) => {
+  const { id } = req.params;
+  const guest = getGuestByIdOrToken(id);
+  const success = deleteGuest(id);
+  if (success && guest) {
+    const newActivity: ActivityEvent = {
+      id: `act-${Date.now()}`,
+      guestName: guest.name,
+      type: 'rsvp_declined',
+      description: `Removed from wedding guest list`,
+      timestamp: 'Just now',
+    };
+    recordActivity(newActivity);
+    broadcast('RESET', {
+      event: getEventDetails(),
+      guests: getAllGuests(),
+      activities: getAllActivities(20),
+      rooms: getAllRooms(),
+    });
+    res.json({ success: true, stats: computeStats() });
+  } else {
+    res.status(404).json({ error: 'Guest not found' });
+  }
+});
+
+// Bulk update guest status (Mark confirmed / declined)
+app.post('/api/guests/bulk-status', (req, res) => {
+  const { guestIds, status } = req.body;
+  if (!Array.isArray(guestIds) || guestIds.length === 0 || !status) {
+    return res.status(400).json({ error: 'guestIds array and status are required' });
+  }
+  const count = bulkUpdateGuestStatus(guestIds, status);
+  const newActivity: ActivityEvent = {
+    id: `act-${Date.now()}`,
+    guestName: `${count} Guests`,
+    type: status === 'confirmed' ? 'rsvp_confirmed' : 'rsvp_declined',
+    description: `Bulk marked ${count} guests as ${status.toUpperCase()}`,
+    timestamp: 'Just now',
+  };
+  recordActivity(newActivity);
+  broadcast('RESET', {
+    event: getEventDetails(),
+    guests: getAllGuests(),
+    activities: getAllActivities(20),
+    rooms: getAllRooms(),
+  });
+  res.json({ success: true, count, stats: computeStats() });
 });
 
 // Batch notification dispatch (WhatsApp reminders / nudges)

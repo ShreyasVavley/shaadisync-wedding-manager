@@ -111,6 +111,30 @@ try {
   db.exec("ALTER TABLE guests ADD COLUMN allowed_sub_events TEXT;");
 } catch (e) {}
 
+// Differentiate ceremony attendance counts realistically across guest categories:
+// - family attends Haldi, Sangeet, Wedding, Reception
+// - friends attend Sangeet, Reception
+// - colleagues attend Reception only
+// - relatives/vip attend Wedding, Reception
+try {
+  const allCurrent = db.prepare('SELECT id, category, status, sub_events FROM guests').all() as any[];
+  for (const g of allCurrent) {
+    if (!g.sub_events || g.sub_events === '{}' || g.sub_events === '{"haldi":true,"sangeet":true,"wedding":true,"reception":true}') {
+      let sub: Record<string, boolean>;
+      if (g.category === 'family') {
+        sub = { haldi: true, sangeet: true, wedding: true, reception: true };
+      } else if (g.category === 'friends') {
+        sub = { haldi: false, sangeet: true, wedding: false, reception: true };
+      } else if (g.category === 'vip') {
+        sub = { haldi: false, sangeet: false, wedding: true, reception: true };
+      } else {
+        sub = { haldi: false, sangeet: false, wedding: false, reception: true };
+      }
+      db.prepare('UPDATE guests SET sub_events = ? WHERE id = ?').run(JSON.stringify(sub), g.id);
+    }
+  }
+} catch (e) {}
+
 export const DEFAULT_SUB_EVENTS = [
   {
     id: 'haldi',
@@ -510,6 +534,107 @@ export function createGuest(data: {
   `).run(id, data.name, data.phone, data.category, data.invitedCount, magicToken);
 
   return getGuestByIdOrToken(id)!;
+}
+
+export function deleteGuest(id: string): boolean {
+  const guest = getGuestByIdOrToken(id);
+  if (!guest) return false;
+  db.prepare('DELETE FROM guests WHERE id = ? OR magic_token = ?').run(guest.id, guest.magicToken);
+  // Free any assigned room
+  db.prepare("UPDATE rooms SET guest_id = NULL, guest_name = NULL, status = 'available' WHERE guest_id = ?").run(guest.id);
+  return true;
+}
+
+export function updateGuestDetails(
+  id: string,
+  data: {
+    name?: string;
+    phone?: string;
+    category?: string;
+    invitedCount?: number;
+    attendingCount?: number;
+    status?: 'confirmed' | 'declined' | 'pending';
+    diet?: string | null;
+    arrivalTime?: string | null;
+    songRequest?: string | null;
+    notes?: string | null;
+    tableNumber?: string | null;
+    subEvents?: Record<string, boolean>;
+    allowedSubEvents?: string[];
+  }
+): Guest {
+  const current = getGuestByIdOrToken(id);
+  if (!current) throw new Error('Guest not found');
+
+  const updatedName = data.name !== undefined ? data.name : current.name;
+  const updatedPhone = data.phone !== undefined ? data.phone : current.phone;
+  const updatedCategory = data.category !== undefined ? data.category : current.category;
+  const updatedInvited = data.invitedCount !== undefined ? Number(data.invitedCount) : current.invitedCount;
+  const updatedStatus = data.status !== undefined ? data.status : current.status;
+  const updatedAttending = data.attendingCount !== undefined ? Number(data.attendingCount) : (updatedStatus === 'confirmed' ? (current.attendingCount || updatedInvited) : 0);
+  const updatedDiet = data.diet !== undefined ? data.diet : current.diet;
+  const updatedArrival = data.arrivalTime !== undefined ? data.arrivalTime : current.arrivalTime;
+  const updatedSong = data.songRequest !== undefined ? data.songRequest : current.songRequest || null;
+  const updatedNotes = data.notes !== undefined ? data.notes : current.notes || null;
+  const updatedTable = data.tableNumber !== undefined ? data.tableNumber : current.tableNumber || null;
+  const updatedSubEventsStr = data.subEvents !== undefined ? JSON.stringify(data.subEvents) : (current.subEvents ? JSON.stringify(current.subEvents) : null);
+  const updatedAllowedStr = data.allowedSubEvents !== undefined ? JSON.stringify(data.allowedSubEvents) : (current.allowedSubEvents ? JSON.stringify(current.allowedSubEvents) : null);
+
+  db.prepare(`
+    UPDATE guests SET
+      name = ?,
+      phone = ?,
+      category = ?,
+      invited_count = ?,
+      status = ?,
+      attending_count = ?,
+      diet = ?,
+      arrival_time = ?,
+      song_request = ?,
+      notes = ?,
+      table_number = ?,
+      sub_events = ?,
+      allowed_sub_events = ?,
+      last_updated = ?
+    WHERE id = ? OR magic_token = ?
+  `).run(
+    updatedName,
+    updatedPhone,
+    updatedCategory,
+    updatedInvited,
+    updatedStatus,
+    updatedAttending,
+    updatedDiet,
+    updatedArrival,
+    updatedSong,
+    updatedNotes,
+    updatedTable,
+    updatedSubEventsStr,
+    updatedAllowedStr,
+    'Just now',
+    current.id,
+    current.magicToken
+  );
+
+  return getGuestByIdOrToken(current.id)!;
+}
+
+export function bulkUpdateGuestStatus(guestIds: string[], status: 'confirmed' | 'declined'): number {
+  let count = 0;
+  for (const id of guestIds) {
+    const g = getGuestByIdOrToken(id);
+    if (g) {
+      const attending = status === 'confirmed' ? (g.attendingCount > 0 ? g.attendingCount : g.invitedCount) : 0;
+      const diet = status === 'confirmed' ? (g.diet || 'veg') : null;
+      const arrival = status === 'confirmed' ? (g.arrivalTime || '07:30 PM') : null;
+      db.prepare(`
+        UPDATE guests SET status = ?, attending_count = ?, diet = ?, arrival_time = ?, last_updated = ?
+        WHERE id = ?
+      `).run(status, attending, diet, arrival, 'Just now', g.id);
+      count++;
+    }
+  }
+  return count;
 }
 
 export function getAllActivities(limit = 30): ActivityEvent[] {
