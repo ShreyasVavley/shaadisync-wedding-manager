@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: shaadisync-wedding-manager
+    env: docker
+    plan: free
+    region: singapore # Lowest latency to India
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/event
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: META_WEBHOOK_VERIFY_TOKEN
+        value: shaadi_sync_verify_123
