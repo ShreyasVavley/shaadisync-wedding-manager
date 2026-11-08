@@ -17,6 +17,14 @@ interface WhatsAppSendResult {
   provider: 'meta_cloud_api' | 'simulator';
 }
 
+export function getAppUrl(): string {
+  return (
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    'https://shaadisync-wedding-manager.onrender.com'
+  );
+}
+
 /**
  * Dispatch an automated WhatsApp message to a guest.
  * If META_WHATSAPP_TOKEN and META_PHONE_NUMBER_ID are configured in environment or DB,
@@ -162,7 +170,7 @@ export async function handleInboundWhatsAppWebhook(
   let updatedGuest: Guest | null = null;
 
   if (!guest) {
-    replyText = `🙏 Namaste! Thank you for reaching out to ${event.couple}'s wedding coordination desk.\n\nWe could not automatically identify your phone number. Please visit our web portal to confirm your RSVP:\n👉 ${process.env.APP_URL || 'http://localhost:5173'}`;
+    replyText = `🙏 Namaste! Thank you for reaching out to ${event.couple}'s wedding coordination desk.\n\nWe could not automatically identify your phone number. Please visit our web portal to confirm your RSVP:\n👉 ${getAppUrl()}`;
 
     recordWebhookLog({
       sender_phone: senderPhone,
@@ -176,7 +184,7 @@ export async function handleInboundWhatsAppWebhook(
     return { replyText, guest: null };
   }
 
-  const magicLink = `${process.env.APP_URL || 'http://localhost:5173'}?guest=${guest.magicToken}`;
+  const magicLink = `${getAppUrl()}?guest=${guest.magicToken}`;
 
   if (parsed.action === 'confirm') {
     const count = parsed.attendingCount || guest.invitedCount;

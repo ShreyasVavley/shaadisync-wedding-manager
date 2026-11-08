@@ -5,7 +5,7 @@ import {
   updateAutomationLastRun,
   recordActivity,
 } from './db';
-import { sendWhatsAppMessage } from './whatsapp';
+import { sendWhatsAppMessage, getAppUrl } from './whatsapp';
 import { ActivityEvent } from '../src/types/wedding';
 
 let isRunning = false;
@@ -33,7 +33,7 @@ export async function executeAutomationRule(
     targetGuests = guests.filter((g) => g.status === 'pending');
 
     for (const g of targetGuests) {
-      const magicLink = `${process.env.APP_URL || 'http://localhost:5173'}?guest=${g.magicToken}`;
+      const magicLink = `${getAppUrl()}?guest=${g.magicToken}`;
       const message = `🙏 *Gentle Reminder: RSVP for ${event.couple}'s Wedding* 🙏\n\nNamaste ${g.name},\n\nWe are finalizing our banquet headcount and fresh catering preparations for *${event.date}* at *${event.venue}*.\n\nCould you kindly confirm if your family will be joining us and your meal preferences?\n👉 ${magicLink}\n\nIt takes just 10 seconds and helps us eliminate banquet food wastage. Thank you so much!\n\nWith love,\n*${event.couple}*`;
 
       await sendWhatsAppMessage(g.phone, message);
@@ -54,7 +54,7 @@ export async function executeAutomationRule(
     targetGuests = guests.filter((g) => g.status === 'confirmed');
 
     for (const g of targetGuests) {
-      const magicLink = `${process.env.APP_URL || 'http://localhost:5173'}?guest=${g.magicToken}`;
+      const magicLink = `${getAppUrl()}?guest=${g.magicToken}`;
       const message = `🎊 *Today is the Day! ${event.couple}'s Wedding Reception* 🎊\n\nDear ${g.name},\n\nWe cannot wait to celebrate with you tonight!\n\n📍 *Venue:* ${event.venue}\n🗺️ *Directions:* ${event.mapsUrl}\n⏰ *Gates Open:* ${event.time}\n\nYour party details: ${magicLink}\nSee you soon on the dance floor! 🕺💃`;
 
       await sendWhatsAppMessage(g.phone, message);
