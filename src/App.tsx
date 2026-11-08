@@ -285,12 +285,12 @@ export function App() {
   // If loading
   if (!event || !stats) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center space-y-4">
-        <div className="w-14 h-14 rounded-full royal-wax-seal text-amber-200 border border-amber-400/50 flex items-center justify-center font-serif text-2xl font-black shadow-2xl animate-pulse">
+      <div className="min-h-screen bg-neutral-900 text-white flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-white text-neutral-900 flex items-center justify-center font-serif text-xl font-bold animate-bounce shadow-xl">
           A&amp;R
         </div>
-        <div className="text-xs tracking-[0.3em] uppercase font-black gold-foil-text">
-          Loading Royal Wedding Guest Command Center...
+        <div className="text-xs tracking-[0.25em] uppercase font-bold text-neutral-400">
+          Loading Realtime Wedding Guest Manager...
         </div>
       </div>
     );
@@ -299,7 +299,7 @@ export function App() {
   // If user opened a specific guest magic link directly on phone or browser:
   if (standaloneGuest) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#08080c] via-[#0f0f15] to-black py-8 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f9fa] py-8 px-4 flex items-center justify-center">
         <GuestRSVP
           guest={standaloneGuest}
           event={event}
@@ -388,15 +388,15 @@ export function App() {
             </div>
 
             {/* iPhone Frame Shell */}
-            <div className="relative w-[375px] h-[680px] bg-black rounded-[48px] p-2.5 shadow-[0_0_50px_rgba(245,158,11,0.2)] border-4 border-amber-500/40 flex flex-col overflow-hidden ring-1 ring-neutral-800">
+            <div className="relative w-[375px] h-[680px] bg-black rounded-[48px] p-3 shadow-2xl border-4 border-neutral-700 flex flex-col overflow-hidden">
               {/* iPhone Notch / Island */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-30 flex items-center justify-center border border-neutral-800/80">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-30 flex items-center justify-center">
                 <div className="w-3 h-3 rounded-full bg-neutral-900 border border-neutral-800 mr-2" />
                 <div className="w-2 h-2 rounded-full bg-neutral-900" />
               </div>
 
               {/* Screen Inner Viewport */}
-              <div className="w-full h-full bg-black rounded-[38px] overflow-y-auto relative">
+              <div className="w-full h-full bg-white rounded-[38px] overflow-y-auto relative">
                 <GuestRSVP
                   key={previewGuest.id}
                   guest={previewGuest}

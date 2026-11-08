@@ -38,77 +38,68 @@ export const ArrivalClock: React.FC<ArrivalClockProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center py-4">
-      <div className="text-[10px] tracking-[0.25em] font-extrabold text-amber-400 uppercase mb-3 flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-        EXPECTED ARRIVAL TIME
+      <div className="text-[11px] tracking-[0.25em] font-semibold text-neutral-400 uppercase mb-4">
+        EXPECTED ARRIVAL
       </div>
 
-      {/* Luxury Timepiece Clock Face */}
-      <div className="relative w-44 h-44 rounded-full border-2 border-amber-500/40 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center shadow-[0_0_30px_-5px_rgba(245,158,11,0.25)] my-2 ring-4 ring-neutral-900">
-        {/* Subtle inner gold rim */}
-        <div className="absolute inset-2 rounded-full border border-amber-500/20 pointer-events-none" />
-
+      {/* Clock Face - Matching minimalist line art from the reel */}
+      <div className="relative w-44 h-44 rounded-full border-[1.5px] border-neutral-900 bg-white flex items-center justify-center shadow-sm my-2">
         {/* 12 Hour tick marks */}
         {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
           <div
             key={deg}
-            className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 flex flex-col justify-between pointer-events-none py-1.5"
+            className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 flex flex-col justify-between pointer-events-none"
             style={{ transform: `rotate(${deg}deg)` }}
           >
             <div
-              className={`w-[1.5px] rounded-full ${
-                deg % 90 === 0
-                  ? 'h-3.5 bg-gradient-to-b from-amber-300 to-amber-500'
-                  : 'h-1.5 bg-amber-500/40'
+              className={`w-[1.5px] bg-neutral-900 ${
+                deg % 90 === 0 ? 'h-3.5' : 'h-1.5'
               }`}
             />
             <div
-              className={`w-[1.5px] rounded-full ${
-                deg % 90 === 0
-                  ? 'h-3.5 bg-gradient-to-t from-amber-300 to-amber-500'
-                  : 'h-1.5 bg-amber-500/40'
+              className={`w-[1.5px] bg-neutral-900 ${
+                deg % 90 === 0 ? 'h-3.5' : 'h-1.5'
               }`}
             />
           </div>
         ))}
 
-        {/* Center Pivot with Ruby Dot */}
-        <div className="absolute w-3 h-3 rounded-full bg-amber-400 z-20 shadow-[0_0_8px_rgba(245,158,11,0.8)] ring-2 ring-neutral-900 flex items-center justify-center">
-          <div className="w-1 h-1 rounded-full bg-rose-600" />
-        </div>
+        {/* Center Pivot */}
+        <div className="absolute w-2.5 h-2.5 rounded-full bg-neutral-900 z-20" />
 
         {/* Hour Hand */}
         <div
-          className="absolute w-1.5 bg-gradient-to-t from-amber-500 to-amber-200 rounded-full origin-bottom z-10 transition-transform duration-500 ease-out shadow-sm"
+          className="absolute w-1 bg-neutral-900 rounded-full origin-bottom z-10 transition-transform duration-500 ease-out"
           style={{
             height: '42px',
             top: 'calc(50% - 42px)',
-            left: 'calc(50% - 3px)',
+            left: 'calc(50% - 2px)',
             transform: `rotate(${hourAngle}deg)`,
           }}
         />
 
         {/* Minute Hand */}
         <div
-          className="absolute w-1 bg-gradient-to-t from-amber-400 to-yellow-100 rounded-full origin-bottom z-10 transition-transform duration-500 ease-out shadow-sm"
+          className="absolute w-[1.5px] bg-neutral-900 rounded-full origin-bottom z-10 transition-transform duration-500 ease-out"
           style={{
             height: '62px',
             top: 'calc(50% - 62px)',
-            left: 'calc(50% - 2px)',
+            left: 'calc(50% - 0.75px)',
             transform: `rotate(${minuteAngle}deg)`,
           }}
         />
       </div>
 
-      {/* Large Digital Display with Gold Foil styling */}
-      <div className="text-4xl font-black tracking-tight gold-foil-text font-mono mt-3 mb-1 drop-shadow-sm">
+      {/* Large Digital Display - Exactly like in reel */}
+      <div className="text-4xl font-extrabold tracking-tight text-neutral-950 mt-4 mb-2">
         {selectedTime}
       </div>
 
       {!readOnly && (
         <>
-          <div className="text-[10px] tracking-wider uppercase text-neutral-400 font-semibold mb-3">
-            Touch to adjust your estimated arrival
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-medium mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 inline-block" />
+            SELECT EXPECTED REACHING TIME
           </div>
 
           {/* Time Picker Pills */}
@@ -120,10 +111,10 @@ export const ArrivalClock: React.FC<ArrivalClockProps> = ({
                   key={time}
                   type="button"
                   onClick={() => onChange(time)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all border ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
                     active
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 border-amber-400 shadow-[0_0_15px_-3px_rgba(245,158,11,0.5)] scale-105'
-                      : 'bg-neutral-900/80 text-neutral-300 border-neutral-700/80 hover:border-amber-500/40 hover:text-white'
+                      ? 'bg-neutral-950 text-white shadow-sm'
+                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                   }`}
                 >
                   {time}

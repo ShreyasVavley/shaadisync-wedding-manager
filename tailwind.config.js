@@ -12,7 +12,7 @@ export default {
         "card-foreground": "hsl(var(--card-foreground, 0 0% 3.9%))",
       },
       fontFamily: {
-        serif: ['"Cinzel"', '"Playfair Display"', 'Georgia', 'serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },

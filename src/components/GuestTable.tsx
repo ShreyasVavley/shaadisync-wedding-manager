@@ -105,19 +105,19 @@ export const GuestTable: React.FC<GuestTableProps> = ({
   const selectedTotalPax = selectedGuestsList.reduce((acc, g) => acc + g.invitedCount, 0);
 
   return (
-    <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-b from-neutral-900/90 to-neutral-950/95 shadow-2xl backdrop-blur-xl overflow-hidden relative text-white">
+    <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden relative">
       {/* Controls Bar */}
-      <div className="p-4 sm:p-5 border-b border-neutral-800/80 space-y-3.5">
+      <div className="p-4 border-b border-neutral-200/80 space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by guest, family, phone, or song..."
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-neutral-800 bg-neutral-900/90 text-white placeholder-neutral-500 focus:bg-neutral-900 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+              placeholder="Search by guest name, phone, or notes..."
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-neutral-200 bg-neutral-50/60 focus:bg-white focus:outline-none focus:border-neutral-900 transition"
             />
           </div>
 
@@ -126,10 +126,10 @@ export const GuestTable: React.FC<GuestTableProps> = ({
             <button
               type="button"
               onClick={handleToggleSelectAll}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border shadow-sm ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border ${
                 isAllSelected
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 border-amber-400'
-                  : 'bg-neutral-900 text-neutral-200 border-neutral-700 hover:border-amber-500/40 hover:bg-neutral-800'
+                  ? 'bg-neutral-900 text-white border-neutral-900'
+                  : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
               }`}
             >
               <input
@@ -139,7 +139,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                   if (el) el.indeterminate = isIndeterminate;
                 }}
                 onChange={handleToggleSelectAll}
-                className="rounded border-neutral-600 text-amber-500 focus:ring-0 cursor-pointer pointer-events-none"
+                className="rounded border-neutral-300 text-neutral-950 focus:ring-0 cursor-pointer pointer-events-none"
               />
               <span>Select All ({filteredGuests.length})</span>
             </button>
@@ -147,20 +147,20 @@ export const GuestTable: React.FC<GuestTableProps> = ({
             <button
               type="button"
               onClick={handleSelectPending}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-bold border border-amber-500/30 bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 transition flex items-center gap-1.5 shadow-sm"
+              className="px-2.5 py-1.5 rounded-xl text-xs font-bold border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1.5"
               title="Select all guests who have not responded to send them a reminder"
             >
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
               <span>Select Awaiting ({guests.filter((g) => g.status === 'pending').length})</span>
             </button>
 
             <button
               type="button"
               onClick={handleSelectConfirmed}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/50 transition flex items-center gap-1.5 shadow-sm"
+              className="px-2.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition flex items-center gap-1.5"
               title="Select all confirmed guests to send them wedding day gate & timing reminders"
             >
-              <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
               <span>Select Confirmed ({guests.filter((g) => g.status === 'confirmed').length})</span>
             </button>
 
@@ -168,7 +168,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="px-2 py-1 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition"
+                className="px-2 py-1 rounded-lg text-xs font-semibold text-neutral-400 hover:text-neutral-700 transition"
               >
                 Clear ({selectedIds.size})
               </button>
@@ -178,34 +178,34 @@ export const GuestTable: React.FC<GuestTableProps> = ({
 
         {/* Filter Chips */}
         <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-          <div className="flex items-center gap-1 text-amber-400/80 font-bold text-[10px] uppercase tracking-wider mr-1">
-            <Filter className="w-3 h-3 text-amber-400" /> Filter:
+          <div className="flex items-center gap-1 text-neutral-400 font-semibold text-[11px] uppercase tracking-wider mr-1">
+            <Filter className="w-3.5 h-3.5" /> Filter:
           </div>
 
           {(['all', 'confirmed', 'pending', 'declined'] as const).map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition border ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition ${
                 statusFilter === st
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 border-amber-400 shadow-md'
-                  : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700 hover:text-white'
+                  ? 'bg-neutral-950 text-white'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
               }`}
             >
               {st === 'pending' ? 'Awaiting Response' : st}
             </button>
           ))}
 
-          <div className="h-4 w-[1px] bg-neutral-800 mx-1 hidden sm:block" />
+          <div className="h-4 w-[1px] bg-neutral-200 mx-1 hidden sm:block" />
 
           {(['all', 'veg', 'non-veg', 'jain'] as const).map((dt) => (
             <button
               key={dt}
               onClick={() => setDietFilter(dt)}
-              className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition border ${
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition ${
                 dietFilter === dt
-                  ? 'bg-neutral-800 text-amber-300 border-amber-500/50'
-                  : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700 hover:text-white'
+                  ? 'bg-neutral-800 text-white'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
               }`}
             >
               {dt === 'all' ? 'All Diets' : dt}
@@ -216,11 +216,11 @@ export const GuestTable: React.FC<GuestTableProps> = ({
 
       {/* Floating Action Banner When Multiple Guests Selected */}
       {selectedIds.size > 0 && (
-        <div className="p-3.5 bg-neutral-950 text-white border-b border-amber-500/30 flex flex-wrap items-center justify-between gap-3 animate-slide-up shadow-xl">
+        <div className="p-3.5 bg-neutral-950 text-white border-b border-neutral-800 flex flex-wrap items-center justify-between gap-3 animate-slide-up">
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping inline-block" />
             <div className="text-xs">
-              <span className="font-black text-amber-300 text-sm">
+              <span className="font-extrabold text-white text-sm">
                 {selectedIds.size} {selectedIds.size === 1 ? 'Party' : 'Parties'} Selected
               </span>{' '}
               <span className="text-neutral-400 font-medium">
@@ -248,10 +248,10 @@ export const GuestTable: React.FC<GuestTableProps> = ({
             <button
               type="button"
               onClick={() => onOpenBatchNotificationModal(selectedGuestsList)}
-              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-neutral-950 text-xs font-black flex items-center gap-2 shadow-[0_0_20px_-3px_rgba(16,185,129,0.5)] active:scale-95 transition"
+              className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 text-xs font-extrabold flex items-center gap-2 shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Send WhatsApp Blast to Selected ({selectedIds.size})</span>
+              <span>Send WhatsApp / Notification to Selected ({selectedIds.size})</span>
             </button>
 
             {/* Clear button */}
@@ -270,9 +270,9 @@ export const GuestTable: React.FC<GuestTableProps> = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-neutral-950/80 text-[10px] uppercase font-black tracking-widest text-amber-400/90 border-b border-amber-500/20">
+          <thead className="bg-neutral-50/80 text-[10px] uppercase font-bold tracking-wider text-neutral-400 border-b border-neutral-200/80">
             <tr>
-              <th className="py-3.5 px-3.5 w-10 text-center">
+              <th className="py-3 px-3.5 w-10 text-center">
                 <input
                   type="checkbox"
                   checked={isAllSelected}
@@ -280,23 +280,23 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                     if (el) el.indeterminate = isIndeterminate;
                   }}
                   onChange={handleToggleSelectAll}
-                  className="rounded border-neutral-700 text-amber-500 focus:ring-0 cursor-pointer"
+                  className="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
                   title="Select / Deselect All Filtered"
                 />
               </th>
-              <th className="py-3.5 px-3">Guest / Family</th>
-              <th className="py-3.5 px-3">Category</th>
-              <th className="py-3.5 px-3">Status</th>
-              <th className="py-3.5 px-3">Confirmed Headcount</th>
-              <th className="py-3.5 px-3">Diet Prep</th>
-              <th className="py-3.5 px-3">Expected Time</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
+              <th className="py-3 px-3">Guest / Family</th>
+              <th className="py-3 px-3">Category</th>
+              <th className="py-3 px-3">Status</th>
+              <th className="py-3 px-3">Confirmed Headcount</th>
+              <th className="py-3 px-3">Diet Prep</th>
+              <th className="py-3 px-3">Expected Time</th>
+              <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-800/80 text-neutral-300">
+          <tbody className="divide-y divide-neutral-100 text-neutral-700">
             {filteredGuests.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-neutral-500">
+                <td colSpan={8} className="py-12 text-center text-neutral-400">
                   No matching guests found.
                 </td>
               </tr>
@@ -312,8 +312,8 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                     key={guest.id}
                     className={`transition-colors group ${
                       isSelected
-                        ? 'bg-amber-950/30 border-l-2 border-amber-400 font-medium'
-                        : 'hover:bg-amber-500/5'
+                        ? 'bg-amber-50/60 font-medium'
+                        : 'hover:bg-neutral-50/60'
                     }`}
                   >
                     {/* Checkbox */}
@@ -322,28 +322,28 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleGuest(guest.id)}
-                        className="rounded border-neutral-700 text-amber-500 focus:ring-0 cursor-pointer"
+                        className="rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 cursor-pointer"
                       />
                     </td>
 
                     {/* Name & Phone */}
                     <td className="py-3.5 px-3">
-                      <div className="font-bold text-white flex items-center gap-2">
+                      <div className="font-bold text-neutral-900 flex items-center gap-2">
                         <span>{guest.name}</span>
                         {isSelected && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                         )}
                       </div>
                       <div className="text-[11px] text-neutral-400 font-mono flex items-center gap-2 mt-0.5">
                         <span>{guest.phone}</span>
                         {guest.songRequest && (
-                          <span className="text-amber-300/90 italic bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 font-sans text-[10px]">
+                          <span className="text-neutral-500 italic bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60 font-sans text-[10px]">
                             🎵 {guest.songRequest}
                           </span>
                         )}
                       </div>
                       {guest.notes && (
-                        <div className="text-[11px] text-neutral-400 italic mt-0.5">
+                        <div className="text-[11px] text-neutral-500 italic mt-0.5">
                           "{guest.notes}"
                         </div>
                       )}
@@ -351,7 +351,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
 
                     {/* Category */}
                     <td className="py-3.5 px-3">
-                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-800 text-neutral-300 border border-neutral-700/60">
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-100 text-neutral-600">
                         {guest.category}
                       </span>
                     </td>
@@ -359,20 +359,20 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                     {/* Status Badge */}
                     <td className="py-3.5 px-3">
                       {isConfirmed && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/50 text-emerald-300 border border-emerald-500/40 shadow-sm">
-                          <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                          <UserCheck className="w-3.5 h-3.5" />
                           Confirmed
                         </span>
                       )}
                       {isDeclined && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/50 text-rose-300 border border-rose-500/40 shadow-sm">
-                          <UserX className="w-3.5 h-3.5 text-rose-400" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">
+                          <UserX className="w-3.5 h-3.5" />
                           Declined
                         </span>
                       )}
                       {isPending && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-950/50 text-amber-300 border border-amber-500/40 shadow-sm animate-pulse-subtle">
-                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                          <Clock className="w-3.5 h-3.5" />
                           Awaiting
                         </span>
                       )}
@@ -381,16 +381,16 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                     {/* Headcount */}
                     <td className="py-3.5 px-3 font-medium">
                       {isConfirmed ? (
-                        <span className="text-white font-black font-mono">
+                        <span className="text-neutral-900 font-bold">
                           {guest.attendingCount}{' '}
                           <span className="text-neutral-400 font-normal">
                             (of {guest.invitedCount} invited)
                           </span>
                         </span>
                       ) : isDeclined ? (
-                        <span className="text-neutral-500">0 Attending</span>
+                        <span className="text-neutral-400">0 Attending</span>
                       ) : (
-                        <span className="text-neutral-400">
+                        <span className="text-neutral-500">
                           {guest.invitedCount} Invited (Pending)
                         </span>
                       )}
@@ -403,23 +403,23 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           {guest.diet === 'veg' && <span className="veg-badge" />}
                           {guest.diet === 'non-veg' && <span className="non-veg-badge" />}
                           {guest.diet === 'jain' && <span className="jain-badge" />}
-                          <span className="capitalize font-semibold text-neutral-200 text-[11px]">
+                          <span className="capitalize font-semibold text-neutral-800 text-[11px]">
                             {guest.diet === 'veg' ? 'Veg' : guest.diet === 'non-veg' ? 'Non-Veg' : 'Jain'}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-neutral-600">—</span>
+                        <span className="text-neutral-300">—</span>
                       )}
                     </td>
 
                     {/* Arrival Time */}
                     <td className="py-3.5 px-3 font-mono text-[11px]">
                       {isConfirmed && guest.arrivalTime ? (
-                        <span className="font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                        <span className="font-semibold text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded">
                           {guest.arrivalTime}
                         </span>
                       ) : (
-                        <span className="text-neutral-600">—</span>
+                        <span className="text-neutral-300">—</span>
                       )}
                     </td>
 
@@ -431,10 +431,10 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           type="button"
                           onClick={() => copyMagicLink(guest)}
                           title="Copy personalized RSVP Link"
-                          className="p-1.5 rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300 hover:text-white hover:border-amber-400/50 hover:bg-neutral-800 transition"
+                          className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition"
                         >
                           {copiedId === guest.id ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
                           ) : (
                             <Copy className="w-3.5 h-3.5" />
                           )}
@@ -445,7 +445,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           type="button"
                           onClick={() => onOpenWhatsAppModal(guest)}
                           title="Send WhatsApp Invite or Reminder"
-                          className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 transition"
+                          className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                         </button>
@@ -455,7 +455,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                           type="button"
                           onClick={() => onSelectGuestForPreview(guest)}
                           title="Open Guest RSVP Screen"
-                          className="p-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 font-bold hover:from-amber-400 hover:to-amber-500 transition shadow-sm"
+                          className="p-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </button>

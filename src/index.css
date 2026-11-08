@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: dark light;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  background-color: #09090b;
-  color: #f8fafc;
+  background-color: #f8f9fa;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -28,53 +28,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* Luxury Gold & Indian Wedding Utilities */
-.gold-foil-text {
-  background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #fbbf24 80%, #b45309 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gold-foil-border {
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.2);
-}
-
-.emerald-glow-border {
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
-}
-
-@keyframes sparkle-fade {
-  0%, 100% {
-    opacity: 0;
-    transform: scale(0.5) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15) rotate(180deg);
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
+  background: #94a3b8;
 }
 
 /* Indian Veg & Non-Veg Symbol Classes */
@@ -134,35 +93,4 @@ body {
   height: 6px;
   background-color: #d97706;
   border-radius: 50%;
-}
-
-/* Royal Luxury Indian Wedding Utilities */
-.luxury-glass {
-  background: rgba(18, 18, 24, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
-}
-
-.luxury-glass-subtle {
-  background: rgba(24, 24, 32, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.royal-wax-seal {
-  background: radial-gradient(circle at 35% 35%, #991b1b 0%, #7f1d1d 60%, #450a0a 100%);
-  box-shadow: 
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.7),
-    0 6px 16px rgba(0, 0, 0, 0.5),
-    0 0 0 3px rgba(245, 158, 11, 0.25);
-}
-
-.kankotri-frame {
-  border: 1.5px solid rgba(245, 158, 11, 0.4);
-  outline: 1px dashed rgba(245, 158, 11, 0.25);
-  outline-offset: -6px;
 }
