@@ -299,7 +299,17 @@ export function App() {
   // If user opened a specific guest magic link directly on phone or browser:
   if (standaloneGuest) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] py-8 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f9fa] py-6 px-4 flex flex-col items-center justify-center">
+        {/* Quick Host Admin Panel switcher */}
+        <div className="w-full max-w-sm mb-3 flex items-center justify-between">
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 text-white text-xs font-semibold shadow-md hover:bg-neutral-800 transition"
+          >
+            ← Host Admin Panel
+          </a>
+          <span className="text-[11px] text-neutral-400 font-medium">Guest Preview Mode</span>
+        </div>
         <GuestRSVP
           guest={standaloneGuest}
           event={event}
