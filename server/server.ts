@@ -63,6 +63,13 @@ function computeStats(): EventStats {
     '09:30 PM': 0,
   };
 
+  const subEventHeadcounts: Record<string, { totalPax: number; parties: number }> = {
+    haldi: { totalPax: 0, parties: 0 },
+    sangeet: { totalPax: 0, parties: 0 },
+    wedding: { totalPax: 0, parties: 0 },
+    reception: { totalPax: 0, parties: 0 },
+  };
+
   guests.forEach((g) => {
     if (g.status === 'confirmed') {
       confirmedGuests += g.attendingCount;
@@ -73,6 +80,15 @@ function computeStats(): EventStats {
 
       if (g.arrivalTime) {
         arrivalDistribution[g.arrivalTime] = (arrivalDistribution[g.arrivalTime] || 0) + g.attendingCount;
+      }
+
+      // Track sub-events attendance
+      const sub = g.subEvents || { haldi: true, sangeet: true, wedding: true, reception: true };
+      for (const key of ['haldi', 'sangeet', 'wedding', 'reception']) {
+        if (sub[key] !== false) {
+          subEventHeadcounts[key].totalPax += g.attendingCount;
+          subEventHeadcounts[key].parties += 1;
+        }
       }
     } else if (g.status === 'declined') {
       declinedGuests += g.invitedCount;
@@ -107,6 +123,7 @@ function computeStats(): EventStats {
     potentialSavings,
     responseRate,
     arrivalDistribution,
+    subEventHeadcounts,
   };
 }
 
@@ -180,7 +197,7 @@ app.get('/api/guest/:idOrToken', (req, res) => {
 
 // Submit / Update RSVP (Persisted to SQLite + Live WS Broadcast)
 app.post('/api/rsvp', (req, res) => {
-  const { guestId, status, attendingCount, diet, arrivalTime, songRequest, notes } = req.body;
+  const { guestId, status, attendingCount, diet, arrivalTime, songRequest, notes, subEvents, tableNumber } = req.body;
 
   try {
     const updatedGuest = updateGuestRSVP(guestId, {
@@ -190,6 +207,8 @@ app.post('/api/rsvp', (req, res) => {
       arrivalTime,
       songRequest,
       notes,
+      subEvents,
+      tableNumber,
     });
 
     const newActivity: ActivityEvent = {

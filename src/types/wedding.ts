@@ -1,6 +1,18 @@
 export type GuestStatus = 'confirmed' | 'declined' | 'pending';
 export type DietPreference = 'veg' | 'non-veg' | 'jain';
 export type GuestCategory = 'family' | 'friends' | 'colleagues' | 'vip';
+export type SupportedLanguage = 'en' | 'hi' | 'gu' | 'pa';
+
+export interface SubEvent {
+  id: string; // 'haldi' | 'sangeet' | 'wedding' | 'reception'
+  title: string;
+  ceremony: string;
+  date: string;
+  time: string;
+  venue: string;
+  mealType: 'Lunch' | 'Dinner' | 'High Tea';
+  dressCode: string;
+}
 
 export interface Guest {
   id: string;
@@ -16,6 +28,8 @@ export interface Guest {
   notes?: string;
   lastUpdated?: string;
   magicToken: string;
+  subEvents?: Record<string, boolean>; // { haldi: true, sangeet: true, wedding: true, reception: true }
+  tableNumber?: string | null;
 }
 
 export interface HotelRoom {
@@ -33,13 +47,14 @@ export interface EventDetails {
   id: string;
   couple: string; // e.g. "Aarav & Riya"
   eventTitle: string; // "Grand Wedding Reception"
-  date: string; // e.g. "Sunday, December 14, 2026"
+  date: string; // e.g. "Saturday, November 28, 2026"
   time: string; // "6:30 PM onwards"
-  venue: string; // "The Grand Ball Room, Taj Palace"
+  venue: string; // "The Grand Ballroom, Taj Palace"
   city: string; // "New Delhi, India"
   mapsUrl: string;
   targetInvited: number; // 400
   costPerPlate: number; // in INR, e.g. 2500
+  subEvents?: SubEvent[];
 }
 
 export interface EventStats {
@@ -59,6 +74,7 @@ export interface EventStats {
   potentialSavings: number; // savings achieved by not over-ordering
   responseRate: number; // percentage
   arrivalDistribution: Record<string, number>; // e.g. { "6:00 PM": 15, "7:00 PM": 85, ... }
+  subEventHeadcounts?: Record<string, { totalPax: number; parties: number }>;
 }
 
 export interface ActivityEvent {

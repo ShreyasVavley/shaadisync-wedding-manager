@@ -98,6 +98,58 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_guests_status ON guests(status);
 `);
 
+// Migration for sub_events and table_number columns
+try {
+  db.exec("ALTER TABLE guests ADD COLUMN sub_events TEXT;");
+} catch (e) {}
+
+try {
+  db.exec("ALTER TABLE guests ADD COLUMN table_number TEXT;");
+} catch (e) {}
+
+export const DEFAULT_SUB_EVENTS = [
+  {
+    id: 'haldi',
+    title: 'Phoolon Ki Haldi & Mehendi',
+    ceremony: 'Haldi & Mehendi',
+    date: 'Friday, Nov 27, 2026',
+    time: '11:00 AM onwards',
+    venue: 'Poolside Lawns, Taj Palace',
+    mealType: 'Lunch' as const,
+    dressCode: 'Yellow & Floral Festive',
+  },
+  {
+    id: 'sangeet',
+    title: 'Sangeet & Cocktail Soirée',
+    ceremony: 'Sangeet Night',
+    date: 'Friday, Nov 27, 2026',
+    time: '7:30 PM onwards',
+    venue: 'Shahjehan Ballroom, Taj Palace',
+    mealType: 'Dinner' as const,
+    dressCode: 'Indo-Western & Glamour',
+  },
+  {
+    id: 'wedding',
+    title: 'Varmala & Royal Pheras',
+    ceremony: 'Wedding Pheras',
+    date: 'Saturday, Nov 28, 2026',
+    time: '4:00 PM onwards',
+    venue: 'The Mandap Courtyard, Taj Palace',
+    mealType: 'High Tea' as const,
+    dressCode: 'Traditional Regal Ethnic',
+  },
+  {
+    id: 'reception',
+    title: 'Grand Wedding Reception',
+    ceremony: 'Reception & Banquet',
+    date: 'Saturday, Nov 28, 2026',
+    time: '7:30 PM onwards',
+    venue: 'The Grand Ballroom, Taj Palace',
+    mealType: 'Dinner' as const,
+    dressCode: 'Formal Black Tie / Sherwani',
+  },
+];
+
 // Seed Database if empty
 function seedIfEmpty() {
   const eventCheck = db.prepare('SELECT COUNT(*) as count FROM events').get() as { count: number };
@@ -266,6 +318,7 @@ export function getEventDetails(): EventDetails {
     mapsUrl: row.maps_url,
     targetInvited: Number(row.target_invited),
     costPerPlate: Number(row.cost_per_plate),
+    subEvents: DEFAULT_SUB_EVENTS,
   };
 }
 
@@ -288,31 +341,47 @@ export function updateEventDetails(data: Partial<EventDetails>): EventDetails {
     updated.costPerPlate,
     current.id
   );
-  return updated;
+  return { ...updated, subEvents: DEFAULT_SUB_EVENTS };
 }
 
 export function getAllGuests(): Guest[] {
   const rows = db.prepare('SELECT * FROM guests ORDER BY ROWID DESC').all() as any[];
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    phone: r.phone,
-    category: r.category as any,
-    invitedCount: Number(r.invited_count),
-    status: r.status as any,
-    attendingCount: Number(r.attending_count),
-    diet: r.diet as any,
-    arrivalTime: r.arrival_time,
-    songRequest: r.song_request || undefined,
-    notes: r.notes || undefined,
-    lastUpdated: r.last_updated || undefined,
-    magicToken: r.magic_token,
-  }));
+  return rows.map((r) => {
+    let subEvents: Record<string, boolean> | undefined;
+    if (r.sub_events) {
+      try {
+        subEvents = JSON.parse(r.sub_events);
+      } catch (e) {}
+    }
+    return {
+      id: r.id,
+      name: r.name,
+      phone: r.phone,
+      category: r.category as any,
+      invitedCount: Number(r.invited_count),
+      status: r.status as any,
+      attendingCount: Number(r.attending_count),
+      diet: r.diet as any,
+      arrivalTime: r.arrival_time,
+      songRequest: r.song_request || undefined,
+      notes: r.notes || undefined,
+      lastUpdated: r.last_updated || undefined,
+      magicToken: r.magic_token,
+      subEvents,
+      tableNumber: r.table_number || undefined,
+    };
+  });
 }
 
 export function getGuestByIdOrToken(param: string): Guest | null {
   const row = db.prepare('SELECT * FROM guests WHERE id = ? OR magic_token = ?').get(param, param) as any;
   if (!row) return null;
+  let subEvents: Record<string, boolean> | undefined;
+  if (row.sub_events) {
+    try {
+      subEvents = JSON.parse(row.sub_events);
+    } catch (e) {}
+  }
   return {
     id: row.id,
     name: row.name,
@@ -327,6 +396,8 @@ export function getGuestByIdOrToken(param: string): Guest | null {
     notes: row.notes || undefined,
     lastUpdated: row.last_updated || undefined,
     magicToken: row.magic_token,
+    subEvents,
+    tableNumber: row.table_number || undefined,
   };
 }
 
@@ -339,10 +410,15 @@ export function updateGuestRSVP(
     arrivalTime: string | null;
     songRequest?: string;
     notes?: string;
+    subEvents?: Record<string, boolean>;
+    tableNumber?: string | null;
   }
 ): Guest {
   const prev = getGuestByIdOrToken(guestId);
   if (!prev) throw new Error('Guest not found');
+
+  const subEventsStr = rsvpData.subEvents ? JSON.stringify(rsvpData.subEvents) : (prev.subEvents ? JSON.stringify(prev.subEvents) : null);
+  const tableNum = rsvpData.tableNumber !== undefined ? rsvpData.tableNumber : (prev.tableNumber || null);
 
   db.prepare(`
     UPDATE guests SET
@@ -352,6 +428,8 @@ export function updateGuestRSVP(
       arrival_time = ?,
       song_request = ?,
       notes = ?,
+      sub_events = ?,
+      table_number = ?,
       last_updated = ?
     WHERE id = ? OR magic_token = ?
   `).run(
@@ -361,6 +439,8 @@ export function updateGuestRSVP(
     rsvpData.status === 'confirmed' ? rsvpData.arrivalTime : null,
     rsvpData.songRequest || prev.songRequest || null,
     rsvpData.notes || prev.notes || null,
+    subEventsStr,
+    tableNum,
     'Just now',
     prev.id,
     prev.magicToken

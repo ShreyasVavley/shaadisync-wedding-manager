@@ -11,6 +11,7 @@ import {
   Clock,
   Filter,
   Send,
+  QrCode,
   X,
 } from 'lucide-react';
 
@@ -19,6 +20,7 @@ interface GuestTableProps {
   onSelectGuestForPreview: (guest: Guest) => void;
   onOpenWhatsAppModal: (guest: Guest) => void;
   onOpenBatchNotificationModal: (selectedGuests: Guest[]) => void;
+  onViewGatePass?: (guest: Guest) => void;
 }
 
 export const GuestTable: React.FC<GuestTableProps> = ({
@@ -26,6 +28,7 @@ export const GuestTable: React.FC<GuestTableProps> = ({
   onSelectGuestForPreview,
   onOpenWhatsAppModal,
   onOpenBatchNotificationModal,
+  onViewGatePass,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'pending' | 'declined'>('all');
@@ -449,6 +452,18 @@ export const GuestTable: React.FC<GuestTableProps> = ({
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                         </button>
+
+                        {/* Digital Gate Pass & Valet QR */}
+                        {isConfirmed && onViewGatePass && (
+                          <button
+                            type="button"
+                            onClick={() => onViewGatePass(guest)}
+                            title="View & Share Digital Wedding Gate Pass"
+                            className="p-1.5 rounded-lg border border-neutral-300 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 transition"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
                         {/* Open in Mobile RSVP Preview */}
                         <button

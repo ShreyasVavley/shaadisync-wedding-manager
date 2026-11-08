@@ -13,6 +13,8 @@ import { NotificationCenter } from './NotificationCenter';
 import { AdminAlertsModal } from './AdminAlertsModal';
 import { BatchNotificationModal } from './BatchNotificationModal';
 import { AutomationControlModal } from './AutomationControlModal';
+import { DigitalGatePassModal } from './DigitalGatePassModal';
+import { exportBanquetMasterCSV } from '../utils/exportBanquetPack';
 import { ShimmerButton } from './ui/shimmer-button';
 import { InteractiveButton } from './ui/interactive-button';
 import { BackgroundPattern } from './ui/background-pattern';
@@ -89,6 +91,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   const [isAutomationModalOpen, setIsAutomationModalOpen] = useState(false);
   const [selectedWhatsAppGuest, setSelectedWhatsAppGuest] = useState<Guest | null>(null);
   const [selectedBatchGuests, setSelectedBatchGuests] = useState<Guest[] | null>(null);
+  const [selectedGatePassGuest, setSelectedGatePassGuest] = useState<Guest | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
   const handleSimulate = async () => {
@@ -98,7 +101,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
   };
 
   const handleExportCSV = () => {
-    window.open('/api/export-csv', '_blank');
+    exportBanquetMasterCSV(event, stats, guests, rooms);
   };
 
   // Percentage calculations for the bar from the reel
@@ -344,6 +347,36 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
           </div>
         </div>
 
+        {/* Multi-Ceremony Attendance Breakdown Strip */}
+        {event.subEvents && event.subEvents.length > 0 && stats.subEventHeadcounts && (
+          <div className="bg-white/95 rounded-2xl border border-neutral-200/80 p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] font-extrabold tracking-[0.2em] uppercase text-neutral-400">
+                CEREMONY-BY-CEREMONY CONFIRMED HEADCOUNTS
+              </div>
+              <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                Taj Palace Kitchens
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {event.subEvents.map((c) => {
+                const counts = stats.subEventHeadcounts?.[c.id] || { totalPax: 0, parties: 0 };
+                return (
+                  <div key={c.id} className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/60 space-y-1">
+                    <div className="text-xs font-bold text-neutral-900 truncate">{c.ceremony}</div>
+                    <div className="text-2xl font-black text-neutral-950 font-mono">
+                      {counts.totalPax} <span className="text-xs font-normal text-neutral-500">pax</span>
+                    </div>
+                    <div className="text-[10px] text-neutral-500 font-medium">
+                      {c.date.split(',')[0]} • {c.mealType}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Minimalist Progress Bar Card (Matching Frame 38.0s & 39.5s from the Reel) */}
         <div className="bg-white/95 rounded-2xl border border-neutral-200/80 p-6 shadow-sm space-y-4 hover:shadow-md transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -469,6 +502,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
               onSelectGuestForPreview={onSelectGuestForPreview}
               onOpenWhatsAppModal={(g) => setSelectedWhatsAppGuest(g)}
               onOpenBatchNotificationModal={(selected) => setSelectedBatchGuests(selected)}
+              onViewGatePass={(g) => setSelectedGatePassGuest(g)}
             />
           </div>
         )}
@@ -560,6 +594,14 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
         event={event}
         guests={guests}
       />
+      {selectedGatePassGuest && (
+        <DigitalGatePassModal
+          isOpen={!!selectedGatePassGuest}
+          onClose={() => setSelectedGatePassGuest(null)}
+          guest={selectedGatePassGuest}
+          event={event}
+        />
+      )}
     </BackgroundPattern>
   );
 };

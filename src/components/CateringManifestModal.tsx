@@ -165,6 +165,47 @@ export const CateringManifestModal: React.FC<CateringManifestModalProps> = ({
             </table>
           </div>
 
+          {/* Ceremony-by-Ceremony Breakdown */}
+          {event.subEvents && event.subEvents.length > 0 && stats.subEventHeadcounts && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-700">
+                Multi-Ceremony Kitchen Commitments
+              </h4>
+              <table className="w-full text-xs border border-neutral-200 rounded-lg overflow-hidden">
+                <thead className="bg-neutral-100 text-[10px] uppercase font-bold text-neutral-600">
+                  <tr>
+                    <th className="py-2 px-3 text-left">Ceremony &amp; Venue</th>
+                    <th className="py-2 px-3 text-center">Schedule</th>
+                    <th className="py-2 px-3 text-center">Meal Service</th>
+                    <th className="py-2 px-3 text-right">Guaranteed Plates</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200">
+                  {event.subEvents.map((c) => {
+                    const counts = stats.subEventHeadcounts?.[c.id] || { totalPax: 0, parties: 0 };
+                    return (
+                      <tr key={c.id}>
+                        <td className="py-2 px-3 font-semibold text-neutral-900">
+                          {c.title}
+                          <div className="text-[10px] text-neutral-500 font-normal">{c.venue}</div>
+                        </td>
+                        <td className="py-2 px-3 text-center text-neutral-600">
+                          {c.date.split(',')[0]} • {c.time}
+                        </td>
+                        <td className="py-2 px-3 text-center font-bold text-neutral-800">
+                          {c.mealType}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-extrabold text-neutral-950">
+                          {counts.totalPax} pax
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {/* Signatures Line */}
           <div className="pt-8 border-t border-neutral-200 grid grid-cols-2 gap-8 text-xs">
             <div className="space-y-6">
